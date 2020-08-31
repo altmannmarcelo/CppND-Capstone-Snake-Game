@@ -29,3 +29,34 @@ In this project, you can build your own C++ application or extend this Snake gam
 2. Make a build directory in the top level directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./SnakeGame`.
+
+## Added Functionality
+
+1. Added a new Class to controll food objects
+2. Added a Thread that apart from Normal food, randomly adds different types of food:
+2.1. Yellow(Normal) - Add 1 point, Increase speed, Increase Body.
+2.2. Green(Points Only) - Add 1 point.
+2.3. Blue (Speed Reducer) - Reduces speed.
+2.4. Brown(Double) - Add 2 points, Increase speed twice, Increase Body twice.
+3. Modified Game Object to hold a vector of Food items.
+
+## Code structure
+
+| Class  | Description  |
+| ------------ | ------------ |
+| Controller  |  Responsible for handling snake direction and keyboard input. |
+| Food  | Responsible for handling food objects around the game board. Also controlls the different types of food and how it affects  points,  speed / body of snake  |
+| Game |  Responsible for handling the game, keeping controll of score, snake and invoking rendering actions |
+| Render | Responsible for UI elements |
+| Snake| Responsible for Snake and its attributes |
+
+## Rubic points addressed
+
+| Item  | File  | Comment
+| ------------ | ------------ | ------------ |
+|The project demonstrates an understanding of C++ functions and control structures.| `src/food.cpp` | Throughout `food.cpp`  a variaty of control structures are used to controll different aspects of Food and FoodItem objects |
+|The project uses Object Oriented Programming techniques| N/A | The entire project is structured using objects |
+|Classes use appropriate access specifiers for class members| `src/food.h:39` | Food Class has private and public attributes and members |
+|Class constructors utilize member initialization lists| `src/food.cpp:4`| Class uses member initialization list for `_type` attribute|
+|The project uses multithreading| `game.cpp:47` | Thread randomFood is used to controll placement and removal or special types of food.
+|A mutex or lock is used in the project| `game.cpp:27` / `game.cpp:106` | A mutex is used to protect `_items` vector from Food object

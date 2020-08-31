@@ -5,6 +5,7 @@
 #include "SDL.h"
 #include <mutex>
 #include <chrono>
+#include "snake.h"
 using std::vector;
 
 enum class FoodType {
@@ -19,6 +20,7 @@ public:
     FoodItem(int y, int x, FoodType type);
     SDL_Point GetPlace();
     FoodType GetType();
+    void calculate(int *score, Snake *snake);
     bool operator== (FoodItem &source);
     inline const char* ToString()
     {

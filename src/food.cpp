@@ -37,6 +37,34 @@ bool FoodItem::operator== (FoodItem &source)
     this->_place.x == source._place.x &&
     this->_place.y == source._place.y;
 }
+void FoodItem::calculate(int *score, Snake *snake)
+{
+  switch(_type)
+  {
+	  case FoodType::Normal:
+		  score++;
+		  // Grow snake and increase speed.
+		  snake->GrowBody();
+		  snake->speed += 0.02;
+		  break;
+	  case FoodType::Points_Only:
+		  score++;
+		  break;
+	  case FoodType::Speed_Reducer:
+		  if(snake->speed > 0.1)
+			  snake->speed -= 0.01;
+		  break;
+	  case FoodType::Double:
+		  score++;
+		  score++;
+		  // Grow snake and increase speed.
+		  snake->GrowBody();
+		  snake->GrowBody();
+		  snake->speed += 0.02;
+		  snake->speed += 0.02;
+		  break;
+  }
+}
 SDL_Point FoodItem::GetPlace()
 {
   return _place;

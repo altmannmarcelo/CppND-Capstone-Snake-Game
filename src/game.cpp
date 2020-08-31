@@ -25,7 +25,7 @@ void Game::PlaceRandomFood()
     {
       std::cout << "PlaceRandomFood thread" << std::endl;
       food._items_mutex.lock();
-      std::cout << "Food in the game" << food.GetItems().size() << std::endl;
+      std::cout << "Food in the game " << food.GetItems().size() << std::endl;
       FoodType new_type = static_cast<FoodType>(rand() % 4);
       PlaceFood(new_type);
       food.RemoveOutdated();
@@ -109,34 +109,12 @@ void Game::Update() {
     if(!item.valid)
       return;
       
-      std::cout << "ate food of type " << item.ToString() << " X: " << item.GetPlace().x << "Y: " << item.GetPlace().y << std::endl;
-      std::cout << "Snake at x: " << new_x << " y:" << new_y << std::endl;
-    switch(item.GetType())
-    {
-      case FoodType::Normal:
-        score++;
-        // Grow snake and increase speed.
-        snake.GrowBody();
-        snake.speed += 0.02;
-        PlaceFood(FoodType::Normal);
-        break;
-      case FoodType::Points_Only:
-        score++;
-        break;
-      case FoodType::Speed_Reducer:
-        if(snake.speed > 0.1)
-          snake.speed -= 0.01;
-        break;
-      case FoodType::Double:
-        score++;
-        score++;
-        // Grow snake and increase speed.
-        snake.GrowBody();
-        snake.GrowBody();
-        snake.speed += 0.02;
-        snake.speed += 0.02;
-        break;
-    }
+    std::cout << "ate food of type " << item.ToString() << " X: " << item.GetPlace().x << "Y: " << item.GetPlace().y << std::endl;
+    std::cout << "Snake at x: " << new_x << " y:" << new_y << std::endl;
+    item.calculate(&score, &snake);
+    if (item.GetType() == FoodType::Normal)
+      PlaceFood(FoodType::Normal);
+
     food.RemoveItem(item);
   }
   food._items_mutex.unlock();

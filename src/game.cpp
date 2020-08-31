@@ -1,5 +1,6 @@
 #include "game.h"
 #include <iostream>
+#include <thread>
 #include "SDL.h"
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
@@ -10,6 +11,31 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
   PlaceFood(FoodType::Normal);
 }
 
+void Game::PlaceRandomFood()
+{
+  std::random_device rd;
+  std::mt19937 eng(rd());
+  std::uniform_int_distribution<> distr(10, 20);
+  int cycle_duration = distr(eng);
+  auto last_update = std::chrono::system_clock::now();
+  while(snake.alive && running)
+  {
+    long time_since_last_update = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - last_update).count();
+    if (time_since_last_update >= cycle_duration)
+    {
+      std::cout << "PlaceRandomFood thread" << std::endl;
+      food._items_mutex.lock();
+      std::cout << "Food in the game" << food.GetItems().size() << std::endl;
+      FoodType new_type = static_cast<FoodType>(rand() % 4);
+      PlaceFood(new_type);
+      food.RemoveOutdated();
+      food._items_mutex.unlock();
+      last_update = std::chrono::system_clock::now();
+      cycle_duration = distr(eng);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
 void Game::Run(Controller const &controller, Renderer &renderer,
                std::size_t target_frame_duration) {
   Uint32 title_timestamp = SDL_GetTicks();
@@ -17,8 +43,8 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   Uint32 frame_end;
   Uint32 frame_duration;
   int frame_count = 0;
-  bool running = true;
-
+  running = true;
+  std::thread randomFood([this] { PlaceRandomFood(); });
   while (running) {
     frame_start = SDL_GetTicks();
 
@@ -48,6 +74,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       SDL_Delay(target_frame_duration - frame_duration);
     }
   }
+  randomFood.join();
 }
 
 void Game::PlaceFood(FoodType type) {
@@ -61,7 +88,7 @@ void Game::PlaceFood(FoodType type) {
     if (!snake.SnakeCell(x, y) && !food.CheckFoodAtCoordinate(y, x)) {
       FoodItem item(y,x,type);
       food.AddItem(item);
-      std::cout << "Food added at Y: " << y << " - X: " << x << std::endl;
+      std::cout << "Food added at X: " << x << " - Y: " << y << " Type: " << item.ToString() << std::endl;
       return;
     }
   }
@@ -76,11 +103,14 @@ void Game::Update() {
   int new_y = static_cast<int>(snake.head_y);
 
   // Check if there's food over here
+  food._items_mutex.lock();
   if (food.CheckFoodAtCoordinate(new_y, new_x)) {
     FoodItem item = food.GetByCoordinate(new_y, new_x);
     if(!item.valid)
       return;
-
+      
+      std::cout << "ate food of type " << item.ToString() << " X: " << item.GetPlace().x << "Y: " << item.GetPlace().y << std::endl;
+      std::cout << "Snake at x: " << new_x << " y:" << new_y << std::endl;
     switch(item.GetType())
     {
       case FoodType::Normal:
@@ -88,6 +118,7 @@ void Game::Update() {
         // Grow snake and increase speed.
         snake.GrowBody();
         snake.speed += 0.02;
+        PlaceFood(FoodType::Normal);
         break;
       case FoodType::Points_Only:
         score++;
@@ -106,9 +137,9 @@ void Game::Update() {
         snake.speed += 0.02;
         break;
     }
-    FoodType new_type = static_cast<FoodType>(rand() % 4);
-    PlaceFood(new_type);
+    food.RemoveItem(item);
   }
+  food._items_mutex.unlock();
 }
 
 int Game::GetScore() const { return score; }

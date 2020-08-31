@@ -1,8 +1,10 @@
 #include "food.h"
+#include <iostream>
 
 FoodItem::FoodItem(int y, int x, FoodType type) : _type(type) {
   _place.y = y;
   _place.x = x;
+  _timeAdded = std::chrono::system_clock::now();
   if(y != -1 && x != -1)
     valid = true;
 
@@ -29,7 +31,12 @@ FoodItem::FoodItem(int y, int x, FoodType type) : _type(type) {
       break;
   }
 };
-
+bool FoodItem::operator== (FoodItem &source)
+{
+  return this->_type == source._type &&
+    this->_place.x == source._place.x &&
+    this->_place.y == source._place.y;
+}
 SDL_Point FoodItem::GetPlace()
 {
   return _place;
@@ -50,6 +57,10 @@ int FoodItem::GetB()
 {
   return _b;
 }
+std::chrono::system_clock::time_point FoodItem::getTimeAdded()
+{
+  return _timeAdded;
+}
 vector<FoodItem> Food::GetItems() const
 {
   return _items;
@@ -69,12 +80,23 @@ FoodItem Food::GetByCoordinate(int y, int x)
   {
     if((*item).GetPlace().y == y && (*item).GetPlace().x == x)
     {
-      _items.erase(item);
+      std::cout << "Going to return item: " << (*item).ToString() << " at X: " << (*item).GetPlace().x << " Y: " << (*item).GetPlace().y << std::endl ;
       return *item;
     }
   }
   FoodItem item(-1,-1,FoodType::Normal);
   return item;
+}
+void Food::RemoveItem(FoodItem &source)
+{
+  for (auto item = _items.begin(); item != _items.end(); item ++)
+  {
+    if((*item) == source)
+    {
+      _items.erase(item);
+      return;
+    }
+  }
 }
 bool Food::CheckFoodAtCoordinate(int y, int x)
 {
@@ -84,4 +106,17 @@ bool Food::CheckFoodAtCoordinate(int y, int x)
       return true;
   }
   return false;
+}
+void Food::RemoveOutdated()
+{
+  for (auto item = _items.begin(); item != _items.end(); item ++)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::seconds>(now - (*item).getTimeAdded());
+    if((*item).GetType() != FoodType::Normal && diff.count() > 10)
+    {
+      std::cout << "Erase outadated is going to remove " << (*item).ToString() << " X: " << (*item).GetPlace().x << " Y: " << (*item).GetPlace().y << std::endl;
+      _items.erase(item);
+    }
+  }
 }

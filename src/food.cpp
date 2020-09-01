@@ -37,7 +37,7 @@ bool FoodItem::operator== (FoodItem &source)
     this->_place.x == source._place.x &&
     this->_place.y == source._place.y;
 }
-void FoodItem::calculate(int *score, Snake *snake)
+void FoodItem::calculate(int &score, Snake *snake)
 {
   switch(_type)
   {
@@ -88,6 +88,17 @@ int FoodItem::GetB()
 std::chrono::system_clock::time_point FoodItem::getTimeAdded()
 {
   return _timeAdded;
+}
+
+
+
+Food::Food()
+{
+  std::cout << "Food Constructor" << std::endl;
+}
+Food::~Food()
+{
+  std::cout << "Food Destructor" << std::endl;
 }
 vector<FoodItem> Food::GetItems() const
 {

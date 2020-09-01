@@ -38,7 +38,7 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, Food const &food) {
+void Renderer::Render(Snake const snake, std::shared_ptr<Food> food) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
@@ -48,7 +48,7 @@ void Renderer::Render(Snake const snake, Food const &food) {
   SDL_RenderClear(sdl_renderer);
 
   // Render food
-  for (FoodItem item : food.GetItems())
+  for (FoodItem item : food.get()->GetItems())
   {
     block.x = item.GetPlace().x * block.w;
     block.y = item.GetPlace().y * block.h;

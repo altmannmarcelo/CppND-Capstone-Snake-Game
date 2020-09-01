@@ -24,12 +24,12 @@ void Game::PlaceRandomFood()
     if (time_since_last_update >= cycle_duration)
     {
       std::cout << "PlaceRandomFood thread" << std::endl;
-      food._items_mutex.lock();
-      std::cout << "Food in the game " << food.GetItems().size() << std::endl;
+      food.get()->_items_mutex.lock();
+      std::cout << "Food in the game " << food.get()->GetItems().size() << std::endl;
       FoodType new_type = static_cast<FoodType>(rand() % 4);
       PlaceFood(new_type);
-      food.RemoveOutdated();
-      food._items_mutex.unlock();
+      food.get()->RemoveOutdated();
+      food.get()->_items_mutex.unlock();
       last_update = std::chrono::system_clock::now();
       cycle_duration = distr(eng);
     }
@@ -62,7 +62,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 
     // After every second, update the window title.
     if (frame_end - title_timestamp >= 1000) {
-      renderer.UpdateWindowTitle(score, snake.speed, frame_count);
+      renderer.UpdateWindowTitle(*score, snake.speed, frame_count);
       frame_count = 0;
       title_timestamp = frame_end;
     }
@@ -85,9 +85,9 @@ void Game::PlaceFood(FoodType type) {
     y = random_h(engine);
     // Check that the location is not occupied by a snake item before placing
     // food.
-    if (!snake.SnakeCell(x, y) && !food.CheckFoodAtCoordinate(y, x)) {
+    if (!snake.SnakeCell(x, y) && (food.get() == nullptr || !food.get()->CheckFoodAtCoordinate(y, x))) {
       FoodItem item(y,x,type);
-      food.AddItem(item);
+      food.get()->AddItem(item);
       std::cout << "Food added at X: " << x << " - Y: " << y << " Type: " << item.ToString() << std::endl;
       return;
     }
@@ -103,22 +103,22 @@ void Game::Update() {
   int new_y = static_cast<int>(snake.head_y);
 
   // Check if there's food over here
-  food._items_mutex.lock();
-  if (food.CheckFoodAtCoordinate(new_y, new_x)) {
-    FoodItem item = food.GetByCoordinate(new_y, new_x);
+  food.get()->_items_mutex.lock();
+  if (food.get()->CheckFoodAtCoordinate(new_y, new_x)) {
+    FoodItem item = food.get()->GetByCoordinate(new_y, new_x);
     if(!item.valid)
       return;
       
     std::cout << "ate food of type " << item.ToString() << " X: " << item.GetPlace().x << "Y: " << item.GetPlace().y << std::endl;
     std::cout << "Snake at x: " << new_x << " y:" << new_y << std::endl;
-    item.calculate(&score, &snake);
+    item.calculate(*score, &snake);
     if (item.GetType() == FoodType::Normal)
       PlaceFood(FoodType::Normal);
 
-    food.RemoveItem(item);
+    food.get()->RemoveItem(item);
   }
-  food._items_mutex.unlock();
+  food.get()->_items_mutex.unlock();
 }
 
-int Game::GetScore() const { return score; }
+int Game::GetScore() const { return *score; }
 int Game::GetSize() const { return snake.size; }

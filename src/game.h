@@ -8,6 +8,7 @@
 #include "snake.h"
 #include "food.h"
 #include <mutex>
+#include <memory>
 
 class Game {
  public:
@@ -19,14 +20,15 @@ class Game {
   void PlaceRandomFood();
  private:
   Snake snake;
-  Food food;
+  std::shared_ptr<Food> food = std::make_shared<Food>();
+  //quitstd::shared_ptr<Food> food;
   bool running{false};
   std::random_device dev;
   std::mt19937 engine;
   std::uniform_int_distribution<int> random_w;
   std::uniform_int_distribution<int> random_h;
 
-  int score{0};
+  int *score = new int(0);
 
   void PlaceFood(FoodType type);
   void Update();

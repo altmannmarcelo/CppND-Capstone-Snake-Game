@@ -20,7 +20,7 @@ public:
     FoodItem(int y, int x, FoodType type);
     SDL_Point GetPlace();
     FoodType GetType();
-    void calculate(int *score, Snake *snake);
+    void calculate(int &score, Snake *snake);
     bool operator== (FoodItem &source);
     inline const char* ToString()
     {
@@ -49,6 +49,8 @@ private:
 
 class Food {
  public:
+   Food();
+   ~Food();
    void AddItem(FoodItem item);
    void RemoveItem(FoodItem &source);
    vector<FoodItem> GetItems() const;
